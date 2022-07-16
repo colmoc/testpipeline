@@ -2,6 +2,9 @@ jobs:
   test-update-app:
     docker:
       - image: python:3.7-alpine3.11
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
@@ -26,11 +29,24 @@ jobs:
             aws sts get-caller-identity
             cat ~/.kube/config
             kubectl get namespace
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
-          name: Update pods with new image
+          name: Create K8 app
           command: |
             ls -ls
             pwd
+            aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
+            kubectl create namespace production-${CIRCLE_WORKFLOW_ID:0:2}
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            dockerpath=colmoconchuir/capapp:0.1.25
+            kubectl create deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --image=$dockerpath -n=production-${CIRCLE_WORKFLOW_ID:0:2}
+            kubectl expose deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --type=LoadBalancer --port=8000 --target-port=80 -n=production-${CIRCLE_WORKFLOW_ID:0:2}
+            touch /tmp/test
+            sleep 10
+            kubectl get svc -n=production-${CIRCLE_WORKFLOW_ID:0:2} > /tmp/test
+            cat /tmp/test
+            kubectl get svc -n=production-${CIRCLE_WORKFLOW_ID:0:2}
   create-small-cluster:
     executor: aws-eks/python3
     parameters:
