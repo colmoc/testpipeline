@@ -1,6 +1,5 @@
 jobs:
   build--test-app:
-    working_directory: ~/repo
     docker:
       - image: python:3.7.3-stretch
     steps:
