@@ -63,14 +63,6 @@ jobs:
           ssh-access: false
           ssh-public-key: ''
           
-  delay:
-    executor: aws-eks/python3
-    steps:
-      - run:
-          command: |
-            sleep 540
-          name: Delay cluster deletion
-          
   initialise-k8:
     docker:
       - image: cimg/go:1.17
@@ -95,6 +87,9 @@ jobs:
             aws sts get-caller-identity
             cat ~/.kube/config
             kubectl get namespace
+            kubectl delete namespace production-green
+            kubectl delete namespace production-blue
+            sleep 20
             kubectl create namespace production-green
             kubectl create namespace production-blue
             sleep 2
@@ -116,7 +111,7 @@ jobs:
           echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
           docker push $DOCKER_PATH:$TAG
           
-  test-update-app:
+  deploy-app:
     docker:
       - image: cimg/go:1.17
         auth:
@@ -155,10 +150,17 @@ jobs:
             dockerpath=$DOCKER_PATH:$TAG
             kubectl create deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --image=$dockerpath -n=production-green
             kubectl expose deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --type=LoadBalancer --port=8000 --target-port=80 -n=production-green
+            kubectl create deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --image=$dockerpath -n=production-blue
+            kubectl expose deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --type=LoadBalancer --port=8000 --target-port=80 -n=production-blue
             sleep 15
             echo kubectl get svc -n=production-green | mawk '{print $4}' | mawk '(NR>1)'
             kubectl get svc -n=production-green
             kubectl get pods -n=production-green
+            kubectl get svc -n=production-blue
+            kubectl get pods -n=production-blue
+            sleep 2
+            kubectl get services -o wide -n=production-green
+            
 orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.4.0
@@ -166,18 +168,11 @@ version: 2.1
 workflows:
   deployment:
     jobs:
+    #- create-small-cluster:
+    #    cluster-name: eks-demo-deployment
       - initialise-k8
       - build-app 
       - upload-docker:
           requires: [build-app]
-      - test-update-app:
+      - deploy-app:
           requires: [upload-docker]
-      #- create-small-cluster:
-      #    cluster-name: eks-demo-deployment
-      #- delay:
-      #    requires:
-      #      - create-small-cluster
-      #- aws-eks/delete-cluster:
-      #    cluster-name: eks-demo-deployment
-      #    requires:
-      #      - delay
