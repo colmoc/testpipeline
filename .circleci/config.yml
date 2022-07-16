@@ -35,8 +35,8 @@ jobs:
           # docker build --tag=house .
           # docker image ls
           # docker run -p 8000:80 house
-
-
+          
+          
   upload-docker:
     docker:
       - image: cimg/go:1.17
@@ -151,7 +151,7 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      -lint 
+      - lint 
       - upload-docker:
           requires: [lint]
       - test-update-app:
