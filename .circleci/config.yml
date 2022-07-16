@@ -1,4 +1,20 @@
-jobs:
+jobs:  
+  upload-docker:
+    docker:
+      - image: cimg/go:1.17
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+          
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+      - run: |
+          TAG=0.1.${CIRCLE_WORKFLOW_ID:0:2}
+          docker build -t $DOCKER_PATH:$TAG .
+          echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+          docker push $DOCKER_PATH:$TAG
   test-update-app:
     docker:
       - image: cimg/go:1.17
@@ -34,10 +50,10 @@ jobs:
             ls -ls
             pwd
             aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
-            kubectl delete namespace production-54
+            kubectl delete namespace production-fb
             kubectl create namespace production-${CIRCLE_WORKFLOW_ID:0:2}
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
-            dockerpath=colmoconchuir/capapp:0.1.25
+            dockerpath=$DOCKER_PATH:$TAG
             kubectl create deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --image=$dockerpath -n=production-${CIRCLE_WORKFLOW_ID:0:2}
             kubectl expose deployment python-housek8s-production-${CIRCLE_WORKFLOW_ID:0:2} --type=LoadBalancer --port=8000 --target-port=80 -n=production-${CIRCLE_WORKFLOW_ID:0:2}
             sleep 10
@@ -92,7 +108,9 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      - test-update-app
+      - upload-docker
+      - test-update-app:
+          requires: [upload-docker]
       #- create-small-cluster:
       #    cluster-name: eks-demo-deployment
       #- delay:
