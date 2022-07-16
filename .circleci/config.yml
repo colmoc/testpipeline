@@ -11,7 +11,7 @@ jobs:
       - aws-eks/install-aws-iam-authenticator:
           release-tag: ''
       - run:
-          name: Install the Eksctl tool
+          name: Install the Eksctl Tool
           command: |
             if which eksctl > /dev/null; then
             echo "eksctl is already installed"
