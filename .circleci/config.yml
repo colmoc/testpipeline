@@ -21,26 +21,17 @@ jobs:
           paths:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
-      # run lint!!
       - run:
           name: run lint
           command: |
             . venv/bin/activate
             make lint
-      - run:
-          name: build docker
-          command: |
-          # . venv/bin/activate
-          # docker build --tag=house .
-          # docker image ls
-          # docker run -p 8000:80 house
   upload-docker:
     docker:
       - image: cimg/go:1.17
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
-          
     steps:
       - checkout
       - setup_remote_docker:
