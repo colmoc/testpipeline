@@ -32,7 +32,7 @@ jobs:
       - setup_remote_docker:
           version: 20.10.14
       - run:
-          name: Create K8 app
+          name: Create K8 App
           command: |
             ls -ls
             pwd
