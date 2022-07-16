@@ -151,7 +151,9 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      - upload-docker
+      -lint 
+      - upload-docker:
+          requires: [lint]
       - test-update-app:
           requires: [upload-docker]
       #- create-small-cluster:
