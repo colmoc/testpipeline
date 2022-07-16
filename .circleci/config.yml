@@ -1,4 +1,36 @@
 jobs:
+  test-update-app:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache \
+                curl \
+                python3 \
+                py3-pip \
+            && pip3 install --upgrade pip \
+            && pip3 install --no-cache-dir \
+                awscli \
+            && rm -rf /var/cache/apk/*
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.23.6/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client
+      - run:
+          name: Update kubconfig
+          command: |
+            aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
+            aws sts get-caller-identity
+            cat ~/.kube/config
+            kubectl get namespace
+      - run:
+          name: Update pods with new image
+          command: |
+            ls -ls
+            pwd
   create-small-cluster:
     executor: aws-eks/python3
     parameters:
@@ -48,12 +80,13 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      - create-small-cluster:
-          cluster-name: eks-demo-deployment
-      - delay:
-          requires:
-            - create-small-cluster
-      - aws-eks/delete-cluster:
-          cluster-name: eks-demo-deployment
-          requires:
-            - delay
+      - test-update-app
+      #- create-small-cluster:
+      #    cluster-name: eks-demo-deployment
+      #- delay:
+      #    requires:
+      #      - create-small-cluster
+      #- aws-eks/delete-cluster:
+      #    cluster-name: eks-demo-deployment
+      #    requires:
+      #      - delay
