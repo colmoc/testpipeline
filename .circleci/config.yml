@@ -1,5 +1,5 @@
 jobs:
-  build-test-app:
+  build-app:
     working_directory: ~/repo
     docker:
       - image: python:3.7.3-stretch
@@ -151,9 +151,9 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      - build-test-app 
+      - build-app 
       - upload-docker:
-          requires: [build-test-app]
+          requires: [build-app]
       - test-update-app:
           requires: [upload-docker]
       #- create-small-cluster:
