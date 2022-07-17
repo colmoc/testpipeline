@@ -202,7 +202,7 @@ jobs:
             kubectl get svc -n=production-green -o wide
             kubectl get pods -n=production-green -o wide
             sleep 2
-            kubectl set image deployment/python-housek8s-production-green houseimg=$dockerpath -n=production-green
+            kubectl set image deployment/python-housek8s-production-green capapp=$dockerpath -n=production-green
             sleep 20
             echo "Updated Image Green"
             kubectl get svc -n=production-green -o wide
@@ -246,14 +246,14 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-      - helper-k8
+    #  - helper-k8
     #- create-small-cluster:
     #    cluster-name: eks-demo-deployment
     #  - initialise-k8
-    ##  - build-app 
-    ##  - upload-docker:
-    ##      requires: [build-app]
+      - build-app 
+      - upload-docker:
+          requires: [build-app]
     #  - deploy-app:
     #      requires: [upload-docker]
-    ##  - update-green:
-    ##      requires: [upload-docker]
+      - update-green:
+          requires: [upload-docker]
