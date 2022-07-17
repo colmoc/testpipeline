@@ -211,6 +211,34 @@ jobs:
             kubectl get svc -n=production-blue -o wide
             kubectl get pods -n=production-blue -o wide
             
+         
+  helper-k8:
+    docker:
+      - image: cimg/go:1.17
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            whoami
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.23.6/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            aws --version
+      - run:
+          name: helper kubconfig
+          command: |
+            aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
+            aws sts get-caller-identity
+            kubectl get pods python-housek8s-production-green-f9579f5cc-6dglr -o jsonpath='{.spec.containers[*].name}' -n=production-green
+            
+            
+            
+            
 orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.4.0
@@ -221,10 +249,11 @@ workflows:
     #- create-small-cluster:
     #    cluster-name: eks-demo-deployment
     #  - initialise-k8
-      - build-app 
-      - upload-docker:
+    ##  - build-app 
+    ##  - upload-docker:
           requires: [build-app]
     #  - deploy-app:
     #      requires: [upload-docker]
-      - update-green:
-          requires: [upload-docker]
+    ##  - update-green:
+    ##      requires: [upload-docker]
+        - helper-k8
