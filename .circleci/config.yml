@@ -282,7 +282,8 @@ jobs:
           command: |
             aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
             aws sts get-caller-identity
-            kubectl get pods python-housek8s-production-green-f9579f5cc-6dglr -o jsonpath='{.spec.containers[*].name}' -n=production-green
+            kubectl get pods python-housek8s-production-green-7bcdb98d6b-kznvf
+            kubectl get pods python-housek8s-production-green-7bcdb98d6b-kznvf -o jsonpath='{.spec.containers[*].name}' -n=production-green
             
             
             
@@ -294,14 +295,14 @@ version: 2.1
 workflows:
   deployment:
     jobs:
-    #  - helper-k8
+      - helper-k8
     #- create-small-cluster:
     #    cluster-name: eks-demo-deployment
     #  - initialise-k8
-      - build-app 
-      - upload-docker:
-          requires: [build-app]
+    ##  - build-app 
+    ##  - upload-docker:
+    ##      requires: [build-app]
     #  - deploy-app:
     #      requires: [upload-docker]
-      - update-blue:
-          requires: [upload-docker]
+    ##  - update-blue:
+    ##      requires: [upload-docker]
