@@ -147,19 +147,14 @@ jobs:
             aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
             dockerpath=$DOCKER_PATH:$TAG
+            echo "Initialise Green deployment:"
             kubectl create deployment python-housek8s-production-green --image=$dockerpath -n=production-green
             kubectl expose deployment python-housek8s-production-green --type=LoadBalancer --port=8000 --target-port=80 -n=production-green
+            echo "Initialise Blue deployment:"
             kubectl create deployment python-housek8s-production-blue --image=$dockerpath -n=production-blue
             kubectl expose deployment python-housek8s-production-blue --type=LoadBalancer --port=8000 --target-port=80 -n=production-blue
             sleep 15
-            echo "Green deployment:"
-            echo kubectl get svc -n=production-green | mawk '{print $4}' | mawk '(NR>1)'
-            kubectl get svc -n=production-green
-            kubectl get pods -n=production-green
-            echo "Blue deployment:"
-            kubectl get svc -n=production-blue
-            kubectl get pods -n=production-blue
-            sleep 2
+            echo "App deployed to Blue and Green Namespaces"
             kubectl get services -o wide -n=production-green
             kubectl get services -o wide -n=production-blue
         
@@ -283,17 +278,8 @@ jobs:
             aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
             echo "URL Green"
             kubectl get services --namespace production-green --output jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'
-            
-        #  
-        #  aws sts get-caller-identity
-        #  kubectl get pods -n=production-green
-        #  kubectl get pods python-housek8s-production-green-7bcdb98d6b-zphd4 -o wide -n=production-green
-        #  kubectl get pods python-housek8s-production-green-7bcdb98d6b-zphd4 -o jsonpath='{.spec.containers[*].name}' -n=production-green
-        #  kubectl get services --namespace production-green -o wide
-        #  kubectl get services --namespace production-green --output jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-        #  kubectl get services --namespace production-green -o json
-            
-            
+            kubectl get svc -n=production-blue -o wide
+            kubectl get pods -n=production-blue -o wide
 orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.4.0
