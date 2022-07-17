@@ -210,7 +210,55 @@ jobs:
             echo "Non-updated Image Blue"
             kubectl get svc -n=production-blue -o wide
             kubectl get pods -n=production-blue -o wide
-            
+         
+        
+  update-blue:
+    docker:
+      - image: cimg/go:1.17
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            whoami
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.23.6/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            aws --version
+      - run:
+          name: Update kubconfig
+          command: |
+            aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
+            aws sts get-caller-identity
+            cat ~/.kube/config
+            kubectl get namespace
+      - setup_remote_docker:
+          version: 20.10.14
+      - run:
+          name: Rolling Update on Blue
+          command: |
+            TAG=0.1.${CIRCLE_WORKFLOW_ID:0:2}
+            aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            dockerpath=$DOCKER_PATH:$TAG
+            kubectl get svc -n=production-blue -o wide
+            kubectl get pods -n=production-blue -o wide
+            sleep 2
+            kubectl set image deployment/python-housek8s-production-blue capapp=$dockerpath -n=production-blue
+            sleep 20
+            echo "Updated Image Blue"
+            kubectl get svc -n=production-blue -o wide
+            kubectl get pods -n=production-blue -o wide
+            echo "Non-updated Image Green"
+            kubectl get svc -n=production-green -o wide
+            kubectl get pods -n=production-green -o wide   
          
   helper-k8:
     docker:
@@ -255,5 +303,5 @@ workflows:
           requires: [build-app]
     #  - deploy-app:
     #      requires: [upload-docker]
-      - update-green:
+      - update-blue:
           requires: [upload-docker]
