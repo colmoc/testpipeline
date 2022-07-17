@@ -199,16 +199,16 @@ jobs:
             aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
             dockerpath=$DOCKER_PATH:$TAG
-            kubectl get svc -n=production-green -o wdie
+            kubectl get svc -n=production-green -o wide
             kubectl get pods -n=production-green -o wide
             sleep 2
             kubectl set image deployment/python-housek8s-production-green houseimg=$dockerpath -n=production-green
             sleep 20
             echo "Updated Image Green"
-            kubectl get svc -n=production-green -o wdie
+            kubectl get svc -n=production-green -o wide
             kubectl get pods -n=production-green -o wide
             echo "Non-updated Image Blue"
-            kubectl get svc -n=production-blue -o wdie
+            kubectl get svc -n=production-blue -o wide
             kubectl get pods -n=production-blue -o wide
             
 orbs:
