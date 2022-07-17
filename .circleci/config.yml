@@ -280,16 +280,17 @@ jobs:
       - run:
           name: helper kubconfig
           command: |
-            aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
-            aws sts get-caller-identity
-            kubectl get pods -n=production-green
-            kubectl get pods python-housek8s-production-green-7bcdb98d6b-zphd4 -o wide -n=production-green
-            kubectl get pods python-housek8s-production-green-7bcdb98d6b-zphd4 -o jsonpath='{.spec.containers[*].name}' -n=production-green
-            kubectl get services --namespace production-green -o wide
-            kubectl get services --namespace production-green --output jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-            echo "test"
+            echo "URL Green"
             kubectl get services --namespace production-green --output jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'
-            kubectl get services --namespace production-green -o json
+            
+        #  aws eks --region us-east-2 update-kubeconfig --name eks-demo-deployment
+        #  aws sts get-caller-identity
+        #  kubectl get pods -n=production-green
+        #  kubectl get pods python-housek8s-production-green-7bcdb98d6b-zphd4 -o wide -n=production-green
+        #  kubectl get pods python-housek8s-production-green-7bcdb98d6b-zphd4 -o jsonpath='{.spec.containers[*].name}' -n=production-green
+        #  kubectl get services --namespace production-green -o wide
+        #  kubectl get services --namespace production-green --output jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+        #  kubectl get services --namespace production-green -o json
             
             
 orbs:
