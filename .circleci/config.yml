@@ -246,14 +246,14 @@ version: 2.1
 workflows:
   deployment:
     jobs:
+      - helper-k8
     #- create-small-cluster:
     #    cluster-name: eks-demo-deployment
     #  - initialise-k8
     ##  - build-app 
     ##  - upload-docker:
-          requires: [build-app]
+    ##      requires: [build-app]
     #  - deploy-app:
     #      requires: [upload-docker]
     ##  - update-green:
     ##      requires: [upload-docker]
-        - helper-k8
