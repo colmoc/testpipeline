@@ -284,6 +284,7 @@ jobs:
             aws sts get-caller-identity
             kubectl get pods python-housek8s-production-green-7bcdb98d6b-kznvf -o wide -n=production-green
             kubectl get pods python-housek8s-production-green-7bcdb98d6b-kznvf -o jsonpath='{.spec.containers[*].name}' -n=production-green
+            kubectl get services --namespace production-green -o wide
             
             
             
