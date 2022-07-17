@@ -286,6 +286,7 @@ jobs:
             kubectl get pods python-housek8s-production-green-7bcdb98d6b-kznvf -o jsonpath='{.spec.containers[*].name}' -n=production-green
             kubectl get services --namespace production-green -o wide
             kubectl get services --namespace production-green --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+            kubectl get services --namespace production-green -o jsonpath='{.items[*].status.addresses[?(@.type=="ExternalIP")].address}'
             
             
             
